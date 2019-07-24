@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="Routing">
+
+<head>
+  <script src="scripts/all_scripts.min.js"> </script>
+  <script src="scripts/js.js" type="text/javascript"> </script>
+  <link href="img/favico.png" rel="shortcut icon" type="image/x-icon">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="css/m.css" rel="stylesheet" type="text/css">
+  <link href="css/main.css" rel="stylesheet" type="text/css">
+  <meta charset="utf-8">
+  <title>
+    {{APPNAME}}
+  </title>
+</head>
+<!-- {{langs[language].APPNAME}} -->
+
+<body ng-controller="Main">
+  <h1 class="logo_text">{{APPNAME}}</h1>
+
+  <!-- На задньому фоні чоні плями -->
+  <div class="bg">
+    <div class="top_left"></div>
+    <div class="top_right"></div>
+    <div class="bot_left"></div>
+  </div>
+
+  <!-- Кнопки меню і добавити новий такск -->
+  <div class="fixed_add">
+    <a ng-click="opendata()" id="create_btn" class="btn-floating btn-large waves-effect waves-plan btn modal-trigger white " href="#modal_create" ng-class="{'if_no_tasks_btn': no_tasks == true}">
+      <i class="material-icons " ng-class="{'plus_if_no_tasks': no_tasks == true}"> add </i>
+    </a>
+    <a id="menu" onclick="$('.tap-target').tapTarget('open');" class="waves-effect waves-plan  white btn btn-floating"><i class="material-icons">menu</i></a>
+    <div class="tap-target" data-target="menu">
+      <div ng-repeat="n in [0,1,2,3]" class="phone_btn pbtn{{$index+1}} "></div>
+      <div class="tap-target-content">
+        <div class="time">{{time | date: 'HH:mm'}}</div>
+        <div class="speaker"></div>
+        <div class="camera">
+          <div class="inside_cam"></div>
+        </div>
+        <div class="btn_group">
+          <div ng-repeat="d in menu" class="btn waves-effect waves-plan"><i class="material-icons">{{menu[$index].ico}}</i><span>{{menu[$index].modal}}</span></div>
+        </div>
+        <div class="soc_group">
+          <div class="btn soc_btn waves-effect waves-plan" ng-click="soc_select($index)" ng-class="{'soc_active': soc_num == $index}" ng-repeat="g in soc">
+            <div style="background:url(img/{{soc[$index].ico}})" class="ico"></div>
+            <a class="hiden_text" href="{{soc[$index].href}}">{{soc[$index].name}}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Сортувати таски по -->
+  <a class='dropdown-trigger btn' href='#' data-target='sort_by'>Sort by</a>
+  <ul id='sort_by' class='dropdown-content'>
+    <li><a ng-click="sort_by_title()">Title</a></li>
+    <li><a ng-click="sort_by_date()">Date</a></li>
+    <li><a ng-click="sort_by_important()">Important</a></li>
+  </ul>
+
+  <!-- кнопки навігації по важливості -->
+  <div class="filter_important">
+    <div class="important_select waves-effect waves-light btn bg-{{$index}} " ng-click="select($index)" ng-class="{'chosed_im':chosed_im == $index}" ng-repeat="x in important"><span ng-show="chosed_im == $index">{{important[$index].im}}</span></div>
+  </div>
+
+  <div class="container" id="main_container">
+    <!-- Блок коли немає тасків -->
+
+    <ul class="collapsible " id="collapsible">
+      <li class="waves-effect waves-light no_task_available" ng-show='show_no_tasks[0] == true' ng-class="{'bg-1': chosed_im == 1,'bg-0': chosed_im == 0, 'bg-2': chosed_im == 2}">
+        <span class="flow-text">
+          No Tasks {{important[chosed_im].im}}
+        </span>
+      </li>
+      <li ng-hide="toDos[$index].important != chosed_im" data-target="task_modal" ng-click="open($index)" class="li{{$index}}  modal-trigger waves-effect waves-light " ng-repeat="toDo in toDos track by $index"
+        ng-class="{'bg-1': chosed_im == 1, 'bg-2': chosed_im == 2}">
+
+        <p class="ico_text_align">
+          <span class="time_ico">
+            <i class="material-icons"> subtitles </i>{{toDo.title}}
+          </span>
+        </p>
+
+        <p class="ico_text_align">
+          <span class="time_ico">
+            <i class="material-icons"> description </i>{{toDo.description}}
+          </span>
+        </p>
+        <p class="ico_text_align">
+          <span class="time_ico flow-text">
+            <i class="material-icons"> date_range </i>
+            {{toDo.dueByDate? toDo.dueByDate: '∞' | date:'MMM dd, yyyy'}}
+          </span>
+          <span class="time_ico flow-text">
+            <i class="material-icons"> access_time </i>
+            {{toDo.dueByTime? toDo.dueByTime: '---'}}
+          </span>
+        </p>
+        <!-- <a class='dropdown-trigger ' href='#' id="dropdown-trigger{{$index}}" data-target='dropdown{{$index}}'>
+            <i class="material-icons">more_vert</i>
+          </a> -->
+        <!-- Dropdown Structure -->
+        <!-- <ul id='dropdown{{$index}}' class='dropdown-content'>
+            <li><a class=" "><i class="material-icons">publish</i>publish</a></li>
+            <li><a class=""><i class="material-icons">attach_file</i>pin</a></li>
+            <li class="divider" tabindex="-1"></li>
+            <li>
+              <a ng-click="select($index); " class="modal-trigger" href="#modal_edit">
+                <i class="material-icons">
+                  edit
+                </i>
+                edit
+              </a>
+            </li>
+            <li>
+              <a class="" ng-click="removeToDo(toDo)">
+                <i class="material-icons">
+                  delete
+                </i>
+                delete
+              </a>
+            </li>
+          </ul> -->
+
+        <!-- <div class="collapsible-body">
+
+
+          <div class="row">
+            <label for="complete_task">To complete this task {{toDo.smaller_tasks.length? 'need end ' + toDo.smaller_tasks.length + ' Task': '' }}: </label>
+
+            <label class="flow-text" ng-repeat="r in toDo.smaller_tasks[$index]"><br>{{$index+1}}) {{toDo.smaller_tasks[$index].title_small}} </label>
+            <p id="complete_task"> </p>
+            <a class="waves-effect waves-white btn-flat modal-trigger" href="#modal-bottom" ng-click="select($index)">
+              {{toDo.smaller_tasks.length?'SHOW':'Create list'}}
+            </a>
+          </div>
+          <div class="progress">
+            <div class="determinate"></div>
+          </div>
+        </div> -->
+      </li>
+    </ul>
+
+  </div>
+  <!-- modal_edit_big_task-->
+  <div id="modal_edit" class="modal">
+    <div class="modal-content">
+      <div class="row">
+        <div class="input-field col s12">
+          <h4>Change task</h4>
+        </div>
+      </div>
+      <form name="form_edit">
+        <div class="row">
+          <div class="input-field col s12">
+            <input id="edittodo" ng-model="editToDoTitle" name="edittodo" maxlength="30" data-length="30" type="text" />
+            <span class="helper-text">Title of task</span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="input-field col s12">
+            <textarea name="editdesc" type="text" ng-model="editToDoDescription" maxlength="120" class="materialize-textarea" data-length="120"></textarea>
+            <span class="helper-text">Description of task</span>
+          </div>
+        </div>
+        <!-- <div class="row">
+          <div class="input-field col s6">
+
+            <input id="editDueDate" name="editdueDate" type="text" class="datepicker" ng-model="editattedDate">
+            <span class="helper-text">End task by Date</span>
+          </div>
+          <div class="input-field col s6">
+            <input id="editDueTime" name="editdueTime" type="text" class="timepicker" ng-model="editformDueTime">
+            <span class="helper-text">End task by Time</span>
+          </div>
+        </div> -->
+        <div class="row">
+          <div class="input-field col s12">
+            <select id="important_edit">
+              <option value="{{$index}}" ng-repeat="x in important">{{important[$index].sm}} {{important[$index].im}}</option>
+            </select>
+            <label>Important of task</label>
+          </div>
+        </div>
+        <div class="row">
+          <div id="modal_buttons" class="input-field col flex s12">
+            <div class="btn waves-effect waves-light flex  modal-close">Cancel
+              <i class="material-icons ">
+                close
+              </i>
+            </div>
+            <button ng-click="changeTodo(num_task)" type="button" class="btn waves-effect waves-light flex  modal-close">Save
+              <i class="material-icons ">
+                check
+              </i>
+            </button>
+
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <div id="task_modal" class="modal">
+    <h1 class="logo_text">{{APPNAME}}</h1>
+    <!-- На задньому фоні чоні плями -->
+    <div class="bg">
+      <div class="top_left"></div>
+      <div class="top_right"></div>
+      <div class="bot_left"></div>
+    </div>
+    <a ng-click="opendata()" id="add_small_task" class="btn-floating btn-large waves-effect waves-plan btn modal-trigger white " href="#modal_create_small_tasks" ng-class="{'if_no_tasks_btn': toDos[num_task].smaller_tasks == null}">
+      <i class="material-icons " ng-class="{'plus_if_no_tasks': no_tasks == true}"> add </i>
+    </a>
+    <div class="modal-content">
+      <div class="task_ul">
+        <h1>{{toDos[datail_task].title}}</h1>
+        <div>{{toDos[datail_task].description}}</div>
+        <div> {{toDos[datail_task].dueByDate? toDos[datail_task].dueByDate: '∞' | date:'MMM dd, yyyy'}}</div>
+        <div>{{toDos[datail_task].dueByTime? toDos[datail_task].dueByTime: '---'}}</div>
+
+        <h2>Goals for this task</h2>
+        <div class="scroll_small_tasks">
+        <div class="active li{{$index}} small_task_li" ng-repeat="f in toDos[datail_task].smaller_tasks track by $index">
+          <p class="flow-text">{{f.title_small}}</p>
+          <!-- <p>{{f.description_small}}</p> -->
+            <p class="ico_text_align">
+          <span class="time_ico flow-text">
+            <i class="material-icons">date_range</i>
+            {{f.dueByDate_small ? f.dueByDate_small: '∞' | date:'MMM dd, yyyy'}}
+          </span>
+            <span class="time_ico flow-text">
+              <i class="material-icons">
+                access_time
+              </i>
+              {{f.dueByTime_small? f.dueByTime_small: '---'}}
+            </span>
+          </p>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+        <!-- <a class='dropdown-trigger ' href='#' id="dropdown-trigger{{$index}}" data-target='dropdown_small{{$index}}'>
+              <i class="material-icons">more_vert</i>
+            </a> -->
+
+        <!-- Dropdown Structure -->
+        <!-- <ul id='dropdown_small{{$index}}' class='dropdown-content'>
+        <li>
+          <a ng-click="select($index); " class="modal-trigger" href="#modal_edit_small">
+            <i class="material-icons">
+              edit
+            </i>
+            edit
+          </a>
+        </li>
+        <li>
+          <a class="" ng-click="removeToDo(toDo)">
+            <i class="material-icons">
+              delete
+            </i>
+            delete
+          </a>
+        </li>
+      </ul> -->
+        <!-- <div class="collapsible-body">
+              <div class="row">
+
+              </div>
+
+
+              <div class="progress">
+                <div class="determinate"></div>
+              </div>
+
+            </div> -->
+
+
+
+
+
+  <div id="modal_create" class="modal">
+    <div class="bg_top bg_modal"></div>
+    <div class="modal-content">
+      <div class=" col s12">
+        <h4>Create Task</h4>
+      </div>
+      <form name="form" novalidate>
+        <div class="data ">
+          <div class="btn_open_time" ng-if="!change_ico" ng-click="opentime('big')"><i class="material-icons">
+              access_time
+            </i></div>
+          <div class="btn_open_time" ng-if="change_ico" ng-click="opendata('big')"><i class="material-icons">
+              date_range
+            </i></div>
+          <input id="dueTime" type="text" class="timepicker" ng-model="formDueTime">
+          <input id="dueDate" name="dueByDate" type="text" type="text" class="datepicker" ng-model="formDueDate">
+        </div>
+        <div class="row">
+          <label for="todo">
+            <div id="create_title" class="btn-floating white btn-large waves-effect waves-plan">
+              <img src="img/paint_brush.svg" alt="">
+            </div>
+          </label>
+          <input id="todo" class="input-field col s12" placeholder="Title of task" required maxlength="30" data-length="30" name="todo" type="text" ng-model="formToDoTitle" />
+        </div>
+        <div class="row">
+          <label for="desc">
+            <div id="create_description" class="btn-floating white btn-large waves-effect waves-plan">
+              <img src="img/paint_brush.svg" alt="">
+
+            </div>
+          </label>
+          <textarea class="input-field col s12" id="desc" placeholder="Description" required name="desc" maxlength="120" class="materialize-textarea" data-length="120" ng-model="formToDoDescription"></textarea>
+        </div>
+
+        <div class="row select_input">
+          <div class="input-field  col s12">
+            <select id="important">
+              <option value="{{$index}}" ng-repeat="x in important">{{important[$index].sm}} {{important[$index].im}}</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div id="modal_buttons" class=" col flex s12">
+            <button ng-disabled="form.$invalid" ng-click="addToDo()" type="button" class="btn-floating white btn-large waves-effect waves-plan  modal-close">
+              <img src="img/mini_play.svg" alt="">
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="modal_create_small_tasks" class="modal">
+    <div class="bg_top bg_modal"></div>
+    <div class="modal-content">
+      <div class=" col s12">
+        <h4>Create goals for Task</h4>
+      </div>
+      <form name="form_small_task" novalidate>
+        <div class="data ">
+          <div class="btn_open_time" ng-if="!change_ico" ng-click="opentime('small')">
+            <i class="material-icons">
+              access_time
+            </i>
+          </div>
+          <div class="btn_open_time" ng-if="change_ico" ng-click="opendata('small')">
+            <i class="material-icons">
+              date_range
+            </i>
+          </div>
+          <input id="dueTime" type="text" class="timepicker" ng-model="formDueTime">
+          <input id="dueDate" name="dueByDate" type="text" type="text" class="datepicker" ng-model="formDueDate">
+        </div>
+
+        <div class="row">
+          <div class="input-field col s12">
+            <label for="todo_small">Title of task</label>
+            <input id="todo_small" required maxlength="30" data-length="30" name="todo_small" type="text" ng-model="formToDoTitle_small" />
+          </div>
+        </div>
+        <div class="row">
+          <div class="input-field col s12">
+            <textarea id="desc_small" required name="desc_small" maxlength="120" class="materialize-textarea" data-length="120" ng-model="formToDoDescription_small"></textarea>
+            <label for="desc_small">Description of task</label>
+          </div>
+        </div>
+        <!-- <div class="row">
+          <div class="input-field col s6">
+            <label for="dueDate_small">End task by Date</label>
+            <input id="dueDate_small" required name="dueByDate_small" type="text" class="datepicker" ng-model="formDueDate_small">
+          </div>
+          <div class="input-field col s6">
+            <label for="dueTime_small">End task by Time</label>
+            <input id="dueTime_small" type="text" class="timepicker" ng-model="formDueTime_small">
+          </div>
+        </div> -->
+        <!-- <div class="row">
+          <div class="input-field col s6">
+            <label for="cl_pick">Chose color for task:</label>
+            <div id="cl_pick" class="fab">
+              <div class="link"></div>
+              <div class="link"></div>
+              <div class="link"></div>
+              <div class="link"></div>
+              <div class="link"></div>
+              <div class="pick btn-flat waves-effect waves-light">
+                <i class="material-icons ">
+                  colorize
+                </i>
+              </div>
+            </div>
+          </div>
+        </div> -->
+      
+        <div class="row">
+          <div id="modal_buttons" class="input-field col flex s12">
+            <button ng-disabled="form_small_task.$invalid" ng-click="addSmallTasks()" type="button"  class="btn-floating white btn-large waves-effect waves-plan modal-close">
+            <img src="img/mini_play.svg" alt="">
+            </button>
+          </div>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+
+  <script src="scripts/materialize.min.js"> </script>
+</body>
+
+</html>
